@@ -27,14 +27,13 @@ export const listPublic = query({
   args: {},
   handler: async (ctx) => {
     const tools = await ctx.db.query("tools").order("desc").take(100);
-    return Promise.all(
-      tools.map(async (t) => ({
-        _id: t._id,
-        name: t.name,
-        category: t.category,
-        available: await isAvailableToday(ctx, t._id),
-      })),
-    );
+    const result = [];
+    for (const t of tools) {
+      if (await isAvailableToday(ctx, t._id)) {
+        result.push({ _id: t._id, name: t.name, category: t.category });
+      }
+    }
+    return result;
   },
 });
 
