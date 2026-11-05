@@ -4,6 +4,7 @@ import type { Doc, Id } from "./_generated/dataModel";
 import { ConvexError, v } from "convex/values";
 import { requireUser, assertSelf } from "./lib/auth";
 import { isIsoDate, overlaps, shiftDays, todayUtc } from "./lib/dates";
+import { enqueueLoanEvent } from "./notifications";
 
 const MAX_DAYS = 30;
 const DAY_MS = 86_400_000;
@@ -28,7 +29,6 @@ async function getLoanOrThrow(ctx: QueryCtx, loanId: Id<"loans">) {
   return loan;
 }
 
-// Devolve só o que as telas precisam: primeiro nome da outra pessoa, sem email.
 async function present(ctx: QueryCtx, loans: Doc<"loans">[], other: "ownerId" | "borrowerId") {
   return Promise.all(
     loans.map(async (l) => {
@@ -57,7 +57,7 @@ export const request = mutation({
     if (!isIsoDate(startDate) || !isIsoDate(endDate) || startDate > endDate) {
       throw new ConvexError({ code: "INVALID_DATES" });
     }
-    // 1 dia de tolerância: o servidor usa UTC e o usuário pode estar atrás (ex.: Brasil à noite)
+
     if (startDate < shiftDays(todayUtc(), -1)) throw new ConvexError({ code: "INVALID_DATES" });
     const days = (Date.parse(endDate) - Date.parse(startDate)) / DAY_MS + 1;
     if (days > MAX_DAYS) throw new ConvexError({ code: "TOO_LONG" });
@@ -76,7 +76,7 @@ export const request = mutation({
       endDate,
       status: "pending",
     });
-    // Etapa 5: await enqueueLoanEvent(ctx, loanId, "request_created");
+    await enqueueLoanEvent(ctx, (await ctx.db.get(loanId))!, "request_created", "owner");
     return loanId;
   },
 });
@@ -89,7 +89,7 @@ export const cancel = mutation({
     assertSelf(me._id, loan.borrowerId);
     if (loan.status !== "pending") throw new ConvexError({ code: "INVALID_STATE" });
     await ctx.db.patch(loanId, { status: "cancelled", decidedAt: Date.now() });
-    // Etapa 5: await enqueueLoanEvent(ctx, loanId, "status_changed");
+    await enqueueLoanEvent(ctx, (await ctx.db.get(loanId))!, "status_changed", "owner");
   },
 });
 
@@ -104,7 +104,7 @@ export const decide = mutation({
       await assertNoOverlap(ctx, loan.toolId, loan.startDate, loan.endDate, loan._id);
     }
     await ctx.db.patch(loanId, { status: decision, decidedAt: Date.now() });
-    // Etapa 5: await enqueueLoanEvent(ctx, loanId, "status_changed");
+    await enqueueLoanEvent(ctx, (await ctx.db.get(loanId))!, "status_changed", "borrower");
   },
 });
 
@@ -116,7 +116,7 @@ export const markReturned = mutation({
     assertSelf(me._id, loan.ownerId);
     if (loan.status !== "approved") throw new ConvexError({ code: "INVALID_STATE" });
     await ctx.db.patch(loanId, { status: "returned", returnedAt: Date.now() });
-    // Etapa 5: await enqueueLoanEvent(ctx, loanId, "status_changed");
+    await enqueueLoanEvent(ctx, (await ctx.db.get(loanId))!, "status_changed", "borrower");
   },
 });
 

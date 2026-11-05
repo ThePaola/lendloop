@@ -2,6 +2,7 @@ import { query, mutation } from "./_generated/server";
 import { paginationOptsValidator } from "convex/server";
 import { ConvexError, v } from "convex/values";
 import { requireAdmin } from "./lib/auth";
+import { enqueueLoanEvent } from "./notifications";
 
 export const listUsers = query({
   args: {},
@@ -56,7 +57,7 @@ export const removeTool = mutation({
     for (const l of loans) {
       if (l.status === "pending") {
         await ctx.db.patch(l._id, { status: "cancelled", decidedAt: Date.now() });
-        // Etapa 5: await enqueueLoanEvent(ctx, l._id, "status_changed");
+        await enqueueLoanEvent(ctx, (await ctx.db.get(l._id))!, "status_changed", "borrower");
       }
     }
     await ctx.db.delete(toolId);

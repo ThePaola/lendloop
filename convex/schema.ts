@@ -43,10 +43,12 @@ export default defineSchema({
     .index("by_borrower", ["borrowerId"])
     .index("by_status_end", ["status", "endDate"]),
 
-  notificationEvents: defineTable({
+    notificationEvents: defineTable({
     eventId: v.string(),
     loanId: v.id("loans"),
     type: v.union(v.literal("request_created"), v.literal("status_changed")),
+    recipient: v.union(v.literal("owner"), v.literal("borrower")),
+    loanStatus,
     status: v.union(v.literal("queued"), v.literal("sent"), v.literal("failed")),
     attempts: v.number(),
     lastError: v.optional(v.string()),
