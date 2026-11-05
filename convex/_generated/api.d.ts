@@ -9,11 +9,14 @@
  */
 
 import type * as admin from "../admin.js";
+import type * as http from "../http.js";
 import type * as lib_auth from "../lib/auth.js";
 import type * as lib_dates from "../lib/dates.js";
 import type * as lib_hmac from "../lib/hmac.js";
 import type * as loans from "../loans.js";
 import type * as notifications from "../notifications.js";
+import type * as reminders from "../reminders.js";
+import type * as seed from "../seed.js";
 import type * as tools from "../tools.js";
 import type * as users from "../users.js";
 
@@ -25,11 +28,14 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   admin: typeof admin;
+  http: typeof http;
   "lib/auth": typeof lib_auth;
   "lib/dates": typeof lib_dates;
   "lib/hmac": typeof lib_hmac;
   loans: typeof loans;
   notifications: typeof notifications;
+  reminders: typeof reminders;
+  seed: typeof seed;
   tools: typeof tools;
   users: typeof users;
 }>;
