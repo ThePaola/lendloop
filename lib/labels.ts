@@ -25,6 +25,12 @@ const MESSAGES: Record<string, string> = {
   NOT_FOUND: "This item no longer exists.",
   INVALID_INPUT: "Please check the form fields.",
   HAS_ACTIVE_LOANS: "This tool has pending or active loans.",
+  OWN_TOOL: "You can't borrow your own tool.",
+  INVALID_DATES: "Please pick a valid date range starting today or later.",
+  TOO_LONG: "Loans can last up to 30 days.",
+  DATES_UNAVAILABLE: "This tool is already booked for those dates.",
+  ALREADY_REQUESTED: "You already have a pending request for this tool.",
+  INVALID_STATE: "This request was already updated. Refresh and try again.",
 };
 
 export function errorMessage(err: unknown) {
@@ -34,3 +40,11 @@ export function errorMessage(err: unknown) {
   }
   return "Something went wrong. Please try again.";
 }
+
+export const STATUS_LABELS: Record<string, string> = {
+  pending: "Pending",
+  approved: "Approved",
+  declined: "Declined",
+  cancelled: "Cancelled",
+  returned: "Returned",
+};

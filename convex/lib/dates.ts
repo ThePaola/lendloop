@@ -5,3 +5,6 @@ export const isIsoDate = (s: string) =>
 
 export const overlaps = (aStart: string, aEnd: string, bStart: string, bEnd: string) =>
   aStart <= bEnd && bStart <= aEnd;
+
+export const shiftDays = (iso: string, n: number) =>
+  new Date(Date.parse(iso) + n * 86_400_000).toISOString().slice(0, 10);

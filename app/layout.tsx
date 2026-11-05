@@ -5,6 +5,7 @@ import { Suspense } from 'react'
 import './globals.css'
 import { ConvexClientProvider } from '@/components/ConvexClientProvider'
 import { UserSync } from '@/components/UserSync'
+import { Nav } from '@/components/Nav'
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -27,30 +28,33 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col">
-        <ClerkProvider>
-          <header className="flex justify-end items-center p-4 gap-4 h-16">
-            <Suspense>
-              <Show when="signed-out">
-                <SignInButton />
-                <SignUpButton>
-                  <button className="bg-purple-700 text-white rounded-full font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 cursor-pointer">
-                    Sign Up
-                  </button>
-                </SignUpButton>
-              </Show>
-              <Show when="signed-in">
-                <UserButton />
-              </Show>
-            </Suspense>
+  <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
+    <body className="min-h-full flex flex-col">
+      <ClerkProvider>
+        <ConvexClientProvider>
+          <UserSync />
+          <header className="flex h-16 items-center gap-4 border-b border-zinc-200 px-4 dark:border-zinc-800">
+            <Nav />
+            <div className="ml-auto flex items-center gap-4">
+              <Suspense>
+                <Show when="signed-out">
+                  <SignInButton />
+                  <SignUpButton>
+                    <button className="bg-purple-700 text-white rounded-full font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 cursor-pointer">
+                      Sign Up
+                    </button>
+                  </SignUpButton>
+                </Show>
+                <Show when="signed-in">
+                  <UserButton />
+                </Show>
+              </Suspense>
+            </div>
           </header>
-          <ConvexClientProvider>
-    <UserSync />
-    {children}
-  </ConvexClientProvider>
-        </ClerkProvider>
-      </body>
-    </html>
-  )
+          {children}
+        </ConvexClientProvider>
+      </ClerkProvider>
+    </body>
+  </html>
+)
 }
