@@ -21,7 +21,7 @@ export const listOverdue = internalQuery({
       .withIndex("by_status_end", (q) => q.eq("status", "approved").lt("endDate", today))
       .take(500);
 
-    const result = [];
+    const result: OverdueLoan[] = [];
     for (const loan of loans) {
       const key = `${loan._id}:${today}`;
       const existing = await ctx.db.query("reminders").withIndex("by_key", (q) => q.eq("idempotencyKey", key)).unique();

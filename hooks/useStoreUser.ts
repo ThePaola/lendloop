@@ -11,10 +11,7 @@ export function useStoreUser() {
   const [userId, setUserId] = useState<Id<"users"> | null>(null);
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      setUserId(null);
-      return;
-    }
+    if (!isAuthenticated) return;
     let cancelled = false;
     store().then((id) => {
       if (!cancelled) setUserId(id);
@@ -24,9 +21,11 @@ export function useStoreUser() {
     };
   }, [isAuthenticated, store]);
 
+  const storedId = isAuthenticated ? userId : null;
+
   return {
-    isLoading: isLoading || (isAuthenticated && userId === null),
-    isAuthenticated: isAuthenticated && userId !== null,
-    userId,
+    isLoading: isLoading || (isAuthenticated && storedId === null),
+    isAuthenticated: storedId !== null,
+    userId: storedId,
   };
 }
