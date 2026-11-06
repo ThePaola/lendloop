@@ -5,6 +5,7 @@ import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { StatusBadge } from "@/components/StatusBadge";
 import { errorMessage } from "@/lib/labels";
+import { ActivityLine } from "@/components/ActivityLine";
 
 export default function IncomingRequestsPage() {
   const me = useQuery(api.users.me);
@@ -37,6 +38,7 @@ export default function IncomingRequestsPage() {
               <div>
                 <p className="font-medium">{l.toolName} <span className="text-sm font-normal text-zinc-500">for {l.otherFirstName}</span></p>
                 <p className="text-sm text-zinc-500">{l.startDate} to {l.endDate}</p>
+                <ActivityLine loanId={l._id} />
               </div>
               <div className="flex items-center gap-3 text-sm">
                 <StatusBadge status={l.status} />

@@ -137,3 +137,45 @@ export const incoming = query({
     return present(ctx, loans, "borrowerId");
   },
 });
+
+const STATUS_WORD: Record<string, string> = {
+  pending: "Request",
+  approved: "Approval",
+  declined: "Decline",
+  cancelled: "Cancellation",
+  returned: "Return",
+};
+
+export const activity = query({
+  args: { loanId: v.id("loans") },
+  handler: async (ctx, { loanId }) => {
+    const me = await requireUser(ctx);
+    const loan = await ctx.db.get(loanId);
+    if (!loan) return [];
+    const allowed = me._id === loan.ownerId || me._id === loan.borrowerId || me.role === "admin";
+    if (!allowed) throw new ConvexError({ code: "FORBIDDEN" });
+
+    const [events, reminders] = await Promise.all([
+      ctx.db.query("notificationEvents").withIndex("by_loan", (q) => q.eq("loanId", loanId)).collect(),
+      ctx.db.query("reminders").withIndex("by_loan", (q) => q.eq("loanId", loanId)).collect(),
+    ]);
+
+    const items = [
+      ...events.map((e) => ({
+        id: e._id as string,
+        label: `${STATUS_WORD[e.loanStatus] ?? "Status"} notification`,
+        state: e.status,
+        attempts: e.attempts,
+        at: e.sentAt ?? e._creationTime,
+      })),
+      ...reminders.map((r) => ({
+        id: r._id as string,
+        label: "Reminder",
+        state: r.status,
+        attempts: 1,
+        at: r.createdAt,
+      })),
+    ];
+    return items.sort((a, b) => b.at - a.at).slice(0, 5);
+  },
+});
