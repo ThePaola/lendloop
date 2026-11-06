@@ -19,6 +19,21 @@ export type Condition = (typeof CONDITIONS)[number]["value"];
 export const categoryLabel = (c: string) => CATEGORIES.find((x) => x.value === c)?.label ?? c;
 export const conditionLabel = (c: string) => CONDITIONS.find((x) => x.value === c)?.label ?? c;
 
+export const STATUS_LABELS: Record<string, string> = {
+  pending: "Pending",
+  approved: "Approved",
+  declined: "Declined",
+  cancelled: "Cancelled",
+  returned: "Returned",
+};
+
+// "2026-11-08", "2026-11-10" -> "Nov 8 to Nov 10"
+export function formatRange(start: string, end: string) {
+  const fmt = (iso: string) =>
+    new Date(`${iso}T00:00:00`).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  return start === end ? fmt(start) : `${fmt(start)} to ${fmt(end)}`;
+}
+
 const MESSAGES: Record<string, string> = {
   UNAUTHENTICATED: "Please sign in again.",
   FORBIDDEN: "You can't do that.",
@@ -40,11 +55,3 @@ export function errorMessage(err: unknown) {
   }
   return "Something went wrong. Please try again.";
 }
-
-export const STATUS_LABELS: Record<string, string> = {
-  pending: "Pending",
-  approved: "Approved",
-  declined: "Declined",
-  cancelled: "Cancelled",
-  returned: "Returned",
-};

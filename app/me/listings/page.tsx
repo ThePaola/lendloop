@@ -27,53 +27,58 @@ export default function MyListingsPage() {
   }
 
   return (
-    <main className="mx-auto w-full max-w-3xl px-4 py-12">
-      <h1 className="text-3xl font-bold">My listings</h1>
+    <main className="page">
+      <p className="eyebrow">Your shelf</p>
+      <h1 className="page-title mt-2">My listings</h1>
 
-      <section className="mt-8 rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
-        <h2 className="mb-3 font-semibold">List a tool</h2>
-        <ToolForm submitLabel="Add tool" onSubmit={(v) => create(v)} />
-      </section>
+      <div className="mt-8 grid items-start gap-8 md:grid-cols-[340px_1fr]">
+        <section className="card md:sticky md:top-24">
+          <h2 className="font-display text-lg font-semibold">List a tool</h2>
+          <div className="mt-4">
+            <ToolForm submitLabel="Add tool" onSubmit={(v) => create(v)} />
+          </div>
+        </section>
 
-      {rowError && <p className="mt-6 text-sm text-red-500">{rowError}</p>}
-
-      <ul className="mt-8 grid gap-3">
-        {tools === undefined ? (
-          <p className="text-zinc-500">Loading...</p>
-        ) : tools.length === 0 ? (
-          <p className="text-zinc-500">{"You haven't listed any tools yet."}</p>
-        ) : (
-          tools.map((t) => (
-            <li key={t._id} className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
-              {editingId === t._id ? (
-                <ToolForm
-                  initial={{ name: t.name, category: t.category, condition: t.condition, description: t.description }}
-                  submitLabel="Save"
-                  onSubmit={async (v) => {
-                    await update({ toolId: t._id, ...v });
-                    setEditingId(null);
-                  }}
-                  onCancel={() => setEditingId(null)}
-                />
-              ) : (
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <p className="font-medium">{t.name}</p>
-                    <p className="text-sm text-zinc-500">
-                      {categoryLabel(t.category)} · {conditionLabel(t.condition)}
-                    </p>
-                    {t.description && <p className="mt-1 text-sm">{t.description}</p>}
-                  </div>
-                  <div className="flex gap-2 text-sm">
-                    <button onClick={() => setEditingId(t._id)} className="underline">Edit</button>
-                    <button onClick={() => handleRemove(t._id)} className="text-red-500 underline">Remove</button>
-                  </div>
-                </div>
-              )}
-            </li>
-          ))
-        )}
-      </ul>
+        <section>
+          {rowError && <p className="error mb-4">{rowError}</p>}
+          {tools === undefined ? (
+            <p className="text-sm text-muted">Loading...</p>
+          ) : tools.length === 0 ? (
+            <p className="empty">{"You haven't listed any tools yet."}</p>
+          ) : (
+            <ul className="grid gap-3">
+              {tools.map((t) => (
+                <li key={t._id} className="card">
+                  {editingId === t._id ? (
+                    <ToolForm
+                      initial={{ name: t.name, category: t.category, condition: t.condition, description: t.description }}
+                      submitLabel="Save"
+                      onSubmit={async (v) => {
+                        await update({ toolId: t._id, ...v });
+                        setEditingId(null);
+                      }}
+                      onCancel={() => setEditingId(null)}
+                    />
+                  ) : (
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <span className="tag">{categoryLabel(t.category)}</span>
+                        <p className="mt-2 font-display text-lg font-semibold">{t.name}</p>
+                        <p className="text-sm text-muted">{conditionLabel(t.condition)} condition</p>
+                        {t.description && <p className="mt-2 text-sm leading-relaxed">{t.description}</p>}
+                      </div>
+                      <div className="flex shrink-0 gap-4">
+                        <button onClick={() => setEditingId(t._id)} className="link">Edit</button>
+                        <button onClick={() => handleRemove(t._id)} className="link text-clay">Remove</button>
+                      </div>
+                    </div>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      </div>
     </main>
   );
 }

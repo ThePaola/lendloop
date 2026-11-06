@@ -6,53 +6,74 @@ import { api } from "@/convex/_generated/api";
 import { CATEGORIES, categoryLabel, conditionLabel, type Category } from "@/lib/labels";
 import { RequestForm } from "@/components/RequestForm";
 
+function Availability({ available }: { available: boolean }) {
+  return (
+    <span className={`inline-flex items-center gap-1.5 text-xs font-medium ${available ? "text-forest" : "text-clay"}`}>
+      <span className={`size-1.5 rounded-full ${available ? "bg-forest" : "bg-clay"}`} />
+      {available ? "Available" : "On loan"}
+    </span>
+  );
+}
+
+const chip = (active: boolean) =>
+  `cursor-pointer rounded-full border px-3 py-1 text-sm transition-colors ${
+    active ? "border-forest bg-forest text-paper" : "border-line bg-card text-muted hover:text-ink"
+  }`;
+
 export default function ToolsPage() {
   const me = useQuery(api.users.me);
   const [category, setCategory] = useState<Category | "">("");
   const tools = useQuery(api.tools.list, me ? (category ? { category } : {}) : "skip");
 
   return (
-    <main className="mx-auto w-full max-w-3xl px-4 py-12">
-      <div className="flex items-center justify-between gap-4">
-        <h1 className="text-3xl font-bold">Tools</h1>
-        <select
-          value={category}
-          onChange={(e) => setCategory(e.target.value as Category | "")}
-          className="rounded-md border border-zinc-300 bg-transparent px-3 py-2 dark:border-zinc-700"
-        >
-          <option value="">All categories</option>
-          {CATEGORIES.map((c) => (
-            <option key={c.value} value={c.value}>{c.label}</option>
-          ))}
-        </select>
+    <main className="page">
+      <p className="eyebrow">The board</p>
+      <h1 className="page-title mt-2">Tools</h1>
+
+      <div className="mt-6 flex flex-wrap gap-2">
+        <button onClick={() => setCategory("")} className={chip(category === "")}>All</button>
+        {CATEGORIES.map((c) => (
+          <button key={c.value} onClick={() => setCategory(c.value)} className={chip(category === c.value)}>
+            {c.label}
+          </button>
+        ))}
       </div>
 
-      <ul className="mt-8 grid gap-3">
-        {tools === undefined ? (
-          <p className="text-zinc-500">Loading...</p>
-        ) : tools.length === 0 ? (
-          <p className="text-zinc-500">No tools in this category yet.</p>
-        ) : (
-          tools.map((t) => (
-            <li key={t._id} className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <p className="font-medium">{t.name}</p>
-                  <p className="text-sm text-zinc-500">
-                    {categoryLabel(t.category)} · {conditionLabel(t.condition)} · lent by {t.isMine ? "you" : t.owner.firstName}
-                    {t.owner.trustedLender && <span className="ml-2 rounded-full bg-purple-500/15 px-2 py-0.5 text-xs text-purple-500">Trusted Lender</span>}
-                  </p>
-                  {t.description && <p className="mt-1 text-sm">{t.description}</p>}
-                </div>
-                <span className={`text-sm font-medium ${t.available ? "text-green-600" : "text-amber-600"}`}>
-                  {t.available ? "Available" : "On loan"}
-                </span>
+      {tools === undefined ? (
+        <p className="mt-8 text-sm text-muted">Loading...</p>
+      ) : tools.length === 0 ? (
+        <p className="empty mt-8">No tools in this category yet.</p>
+      ) : (
+        <ul className="mt-8 grid gap-4 md:grid-cols-2">
+          {tools.map((t) => (
+            <li key={t._id} className="card flex flex-col">
+              <div className="flex items-start justify-between gap-3">
+                <span className="tag">{categoryLabel(t.category)}</span>
+                <Availability available={t.available} />
               </div>
-              {!t.isMine && <RequestForm toolId={t._id} />}
+              <h2 className="mt-3 font-display text-xl font-semibold">{t.name}</h2>
+              <p className="mt-1 text-sm text-muted">
+                {conditionLabel(t.condition)} condition · lent by {t.isMine ? "you" : t.owner.firstName}
+              </p>
+              {t.owner.trustedLender && (
+                <p className="mt-2">
+                  <span className="inline-flex items-center gap-1 rounded-full bg-forest-soft px-2 py-0.5 text-xs font-medium text-forest">
+                    ✓ Trusted lender
+                  </span>
+                </p>
+              )}
+              {t.description && <p className="mt-3 text-sm leading-relaxed">{t.description}</p>}
+              {!t.isMine && (
+                <div className="mt-auto pt-5">
+                  <div className="border-t border-dashed border-line pt-4">
+                    <RequestForm toolId={t._id} />
+                  </div>
+                </div>
+              )}
             </li>
-          ))
-        )}
-      </ul>
+          ))}
+        </ul>
+      )}
     </main>
   );
 }
