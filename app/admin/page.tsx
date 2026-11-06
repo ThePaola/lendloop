@@ -3,9 +3,8 @@
 import { useState } from "react";
 import { useMutation, usePaginatedQuery, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import type { Id } from "@/convex/_generated/dataModel";
 import { StatusBadge } from "@/components/StatusBadge";
-import { categoryLabel, errorMessage } from "@/lib/labels";
+import { categoryLabel, errorMessage, formatRange } from "@/lib/labels";
 
 export default function AdminPage() {
   const me = useQuery(api.users.me);
@@ -28,88 +27,93 @@ export default function AdminPage() {
     }
   }
 
-  if (me === undefined) return <main className="mx-auto max-w-4xl px-4 py-12 text-zinc-500">Loading...</main>;
-  if (!isAdmin) return <main className="mx-auto max-w-4xl px-4 py-12">{"You don't have access to this page."}</main>;
-
-  const box = "rounded-lg border border-zinc-200 p-4 dark:border-zinc-800";
+  if (me === undefined) return <main className="page text-sm text-muted">Loading...</main>;
+  if (!isAdmin) return <main className="page"><p className="empty">{"You don't have access to this page."}</p></main>;
 
   return (
-    <main className="mx-auto grid w-full max-w-4xl gap-10 px-4 py-12">
-      <h1 className="text-3xl font-bold">Admin</h1>
-      {error && <p className="text-sm text-red-500">{error}</p>}
+    <main className="page">
+      <p className="eyebrow">Moderation</p>
+      <h1 className="page-title mt-2">Admin</h1>
+      {error && <p className="error mt-4">{error}</p>}
 
-      <section>
-        <h2 className="mb-3 text-xl font-semibold">Users</h2>
-        <ul className="grid gap-2">
-          {users?.map((u) => (
-            <li key={u._id} className={`${box} flex items-center justify-between gap-4`}>
-              <div>
-                <p className="font-medium">{u.name} {u.role === "admin" && <span className="text-xs text-purple-500">admin</span>}</p>
-                <p className="text-sm text-zinc-500">{u.email}</p>
-              </div>
-              <label className="flex items-center gap-2 text-sm">
-                <input
-                  type="checkbox"
-                  checked={u.trustedLender}
-                  onChange={(e) => run(() => setTrusted({ userId: u._id, trusted: e.target.checked }))}
-                />
-                Trusted Lender
-              </label>
-            </li>
-          ))}
-        </ul>
-      </section>
+      <div className="mt-10 grid gap-10 lg:grid-cols-2">
+        <section>
+          <h2 className="font-display text-xl font-semibold">Neighbors</h2>
+          <ul className="mt-4 grid gap-2">
+            {users?.map((u) => (
+              <li key={u._id} className="card flex items-center justify-between gap-4 py-4">
+                <div className="min-w-0">
+                  <p className="font-medium">
+                    {u.name}
+                    {u.role === "admin" && <span className="tag ml-2">admin</span>}
+                  </p>
+                  <p className="truncate text-sm text-muted">{u.email}</p>
+                </div>
+                <label className="flex shrink-0 items-center gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    className="size-4 accent-forest"
+                    checked={u.trustedLender}
+                    onChange={(e) => run(() => setTrusted({ userId: u._id, trusted: e.target.checked }))}
+                  />
+                  Trusted lender
+                </label>
+              </li>
+            ))}
+          </ul>
+        </section>
 
-      <section>
-        <h2 className="mb-3 text-xl font-semibold">All listings</h2>
-        <ul className="grid gap-2">
-          {tools?.map((t) => (
-            <li key={t._id} className={`${box} flex items-center justify-between gap-4`}>
-              <div>
-                <p className="font-medium">{t.name}</p>
-                <p className="text-sm text-zinc-500">{categoryLabel(t.category)} · by {t.owner.firstName}</p>
-              </div>
-              <button
-                onClick={() => {
-                  if (window.confirm(`Remove "${t.name}"?`)) run(() => removeTool({ toolId: t._id as Id<"tools"> }));
-                }}
-                className="text-sm text-red-500 underline"
-              >
-                Remove
-              </button>
-            </li>
-          ))}
-        </ul>
-      </section>
+        <section>
+          <h2 className="font-display text-xl font-semibold">All listings</h2>
+          <ul className="mt-4 grid gap-2">
+            {tools?.map((t) => (
+              <li key={t._id} className="card flex items-center justify-between gap-4 py-4">
+                <div>
+                  <p className="font-medium">{t.name}</p>
+                  <p className="text-sm text-muted">{categoryLabel(t.category)} · by {t.owner.firstName}</p>
+                </div>
+                <button
+                  onClick={() => {
+                    if (window.confirm(`Remove "${t.name}"?`)) run(() => removeTool({ toolId: t._id }));
+                  }}
+                  className="link text-clay"
+                >
+                  Remove
+                </button>
+              </li>
+            ))}
+          </ul>
+        </section>
+      </div>
 
-      <section>
-        <h2 className="mb-3 text-xl font-semibold">All loans</h2>
-        <div className="overflow-x-auto">
+      <section className="mt-12">
+        <h2 className="font-display text-xl font-semibold">All loans</h2>
+        <div className="card mt-4 overflow-x-auto p-0">
           <table className="w-full text-left text-sm">
-            <thead className="text-zinc-500">
+            <thead className="border-b border-line text-xs uppercase tracking-[0.08em] text-muted">
               <tr>
-                <th className="py-2">Tool</th>
-                <th>Lender</th>
-                <th>Borrower</th>
-                <th>Dates</th>
-                <th>Status</th>
+                <th className="px-5 py-3 font-semibold">Tool</th>
+                <th className="px-5 py-3 font-semibold">Lender</th>
+                <th className="px-5 py-3 font-semibold">Borrower</th>
+                <th className="px-5 py-3 font-semibold">Dates</th>
+                <th className="px-5 py-3 font-semibold">Status</th>
               </tr>
             </thead>
             <tbody>
               {loans.results.map((l) => (
-                <tr key={l._id} className="border-t border-zinc-200 dark:border-zinc-800">
-                  <td className="py-2">{l.toolName}</td>
-                  <td>{l.ownerName}</td>
-                  <td>{l.borrowerName}</td>
-                  <td>{l.startDate} to {l.endDate}</td>
-                  <td><StatusBadge status={l.status} /></td>
+                <tr key={l._id} className="border-b border-line last:border-0">
+                  <td className="px-5 py-3 font-medium">{l.toolName}</td>
+                  <td className="px-5 py-3">{l.ownerName}</td>
+                  <td className="px-5 py-3">{l.borrowerName}</td>
+                  <td className="px-5 py-3 whitespace-nowrap text-muted">{formatRange(l.startDate, l.endDate)}</td>
+                  <td className="px-5 py-3"><StatusBadge status={l.status} /></td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
         {loans.status === "CanLoadMore" && (
-          <button onClick={() => loans.loadMore(20)} className="mt-3 text-sm underline">Load more</button>
+          <button onClick={() => loans.loadMore(20)} className="btn btn-outline mt-4">Load more</button>
         )}
       </section>
     </main>
