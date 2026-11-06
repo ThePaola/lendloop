@@ -322,3 +322,8 @@ In PowerShell, set the variable first: `$env:CONVEX_TO_N8N_SECRET="..."; node sc
 - Rate limiting on mutations, an audit log for admin actions, Sentry on the frontend and backend, alerts on `failed` events and an admin "resend" button
 - Retention: delete old events and reminders after a set period
 - Automated authorization tests with `convex-test` in CI
+
+## AI assistance
+
+As the assignment allows, I used an AI assistant (Claude) throughout this project.
+I set up and configured every service myself, wrote and reviewed the code as it went in, and tested each part by hand, including the security checks described above. I can walk through and explain any part of the code.
